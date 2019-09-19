@@ -1,5 +1,7 @@
 Welcome to the Klipper project!
 
+Modified by Sir. Mighty specifically for the Fabtotum 3D Printer.
+
 [![Klipper](docs/img/klipper-logo-small.png)](https://www.klipper3d.org/)
 
 https://www.klipper3d.org/

@@ -71,14 +71,7 @@ class Homing:
                 list(self.toolhead.get_kinematics().calc_position()) + [None])
         else:
             self.toolhead.set_position(movepos)
-        for mcu_endstop, name in endstops:
-            try:
-                mcu_endstop.home_finalize()
-            except CommandError as e:
-                if error is None:
-                    error = str(e)
-        if error is not None:
-            raise CommandError(error)
+        # removed finalize
         # Check if some movement occurred
         if verify_movement:
             for s, name, pos in start_mcu_pos:
@@ -87,6 +80,17 @@ class Homing:
                         raise EndstopError("Probe triggered prior to movement")
                     raise EndstopError(
                         "Endstop %s still triggered after retract" % (name,))
+
+    def finalize(self, movepos, endstops):
+        for mcu_endstop, name in endstops:
+            try:
+                mcu_endstop.home_finalize()
+            except CommandError as e:
+                if error is None:
+                    error = str(e)
+        if error is not None:
+            raise CommandError(error)
+
     def home_rails(self, rails, forcepos, movepos):
         # Alter kinematics class to think printer is at forcepos
         homing_axes = [axis for axis in range(3) if forcepos[axis] is not None]
@@ -112,6 +116,8 @@ class Homing:
             self.toolhead.set_position(forcepos)
             self.homing_move(movepos, endstops, hi.second_homing_speed,
                              verify_movement=self.verify_retract)
+        # finalize
+        self.finalize(movepos, endstops)
         # Signal home operation complete
         ret = self.printer.send_event("homing:homed_rails", self, rails)
         if any(ret):
